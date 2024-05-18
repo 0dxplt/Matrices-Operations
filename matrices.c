@@ -1,3 +1,4 @@
+#include <math.h>
 #include "matrices.h"
 
 typedef struct matrix
@@ -91,7 +92,8 @@ MatrixPtr Mul(MatrixPtr a, MatrixPtr b)
             for (int j = 0; j < Mul->columns; j++)
             {
                 m[i][j] = 0;
-                for (int k = 0; k < a->columns; k++) {
+                for (int k = 0; k < a->columns; k++)
+                {
                     m[i][j] += a->matrix[i][k] * b->matrix[k][j];
                 }
             }
@@ -99,16 +101,65 @@ MatrixPtr Mul(MatrixPtr a, MatrixPtr b)
         Mul->matrix = m;
         return Mul;
     }
-    else {
+    else
+    {
         return NULL;
+    }
+}
+
+MatrixPtr Cofactor(MatrixPtr a, int y)
+{
+    MatrixPtr c = (MatrixPtr)malloc(sizeof(Matrix));
+    c->rows = a->rows - 1;
+    c->columns = a->columns - 1;
+    float **cofactor = (float **)malloc(c->rows * sizeof(float *));
+    for (int i = 0; i < c->rows; i++)
+    {
+        cofactor[i] = (float *)malloc(c->columns * sizeof(float));
+        for (int j = 0, k = 0; j < c->rows; k++)
+        {
+            if (k != y)
+            {
+                cofactor[i][j] = a->matrix[i + 1][k];
+                j++;
+            }
+        }
+    }
+    c->matrix = cofactor;
+    return c;
+}
+
+int Det(MatrixPtr a)
+{
+    if (a->rows != a->columns)
+        return NULLVALUE;
+    else if (a->rows == 2)
+    {
+        return (a->matrix[0][0] * a->matrix[1][1]) - (a->matrix[0][1] * a->matrix[1][0]);
+    }
+    else if (a->rows == 3)
+    {
+        return (a->matrix[0][0] * ((a->matrix[1][1] * a->matrix[2][2]) - (a->matrix[1][2] * a->matrix[2][1]))) - (a->matrix[0][1] * ((a->matrix[1][0] * a->matrix[2][2]) - (a->matrix[1][2] * a->matrix[2][0]))) + (a->matrix[0][2] * ((a->matrix[1][0] * a->matrix[2][1]) - (a->matrix[1][1] * a->matrix[2][0])));
+    }
+    else
+    {
+        int det = 0;
+        for (int i = 0; i < a->columns; i++)
+        {
+            det += a->matrix[0][i] * pow(-1, i) * Det(Cofactor(a, i));
+        }
+        return det;
     }
 }
 
 void printMatrix(MatrixPtr matrix)
 {
-    if (matrix == NULL) {
+    if (matrix == NULL)
+    {
         return;
-    } else {
+    }
+    else
+    {
         printf("[\n");
         for (int i = 0; i < matrix->rows; i++)
         {
