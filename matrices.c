@@ -132,7 +132,7 @@ MatrixPtr Cofactor(MatrixPtr a, int y)
 int Det(MatrixPtr a)
 {
     if (a->rows != a->columns)
-        return NULLVALUE;
+        return -1;
     else if (a->rows == 2)
     {
         return (a->matrix[0][0] * a->matrix[1][1]) - (a->matrix[0][1] * a->matrix[1][0]);
@@ -150,6 +150,124 @@ int Det(MatrixPtr a)
         }
         return det;
     }
+}
+
+MatrixPtr Square(MatrixPtr a)
+{
+    return Mul(a, a);
+}
+
+size_t isTriangularS(MatrixPtr a)
+{
+    for (int i = 0; i < a->rows; i++)
+    {
+        for (int j = 0; j < i; j++)
+        {
+            if (a->matrix[i][j] != 0)
+                return 0;
+        }
+        if (a->matrix[i][i] != 1)
+        {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+size_t isTriangularI(MatrixPtr a)
+{
+    for (int i = 0; i < a->rows; i++)
+    {
+        for (int j = i + 1; j < a->rows; j++)
+        {
+            if (a->matrix[i][j] != 0)
+                return 0;
+        }
+        if (a->matrix[i][i] != 1)
+        {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+size_t isTriangular(MatrixPtr a)
+{
+    if (a->rows != a->columns)
+        return 0;
+    else
+    {
+        return isTriangularI(a) || isTriangularS(a);
+    }
+}
+
+MatrixPtr Reduce(MatrixPtr a)
+{
+    if (isTriangularI(a))
+    {
+        return a;
+    }
+    else
+    {
+        for (int i = 0; i < a->rows; i++)
+        {
+            if (a->matrix[i][i] == 0)
+            {
+                for (int k = i + 1; k < a->rows; k++)
+                {
+                    if (a->matrix[k][i] != 0)
+                    {
+                        float *temp = a->matrix[i];
+                        a->matrix[i] = a->matrix[k];
+                        a->matrix[k] = temp;
+                        break;
+                    }
+                }
+            }
+
+            if (a->matrix[i][i] != 0 && a->matrix[i][i] != 1.0)
+            {
+                float scale = a->matrix[i][i];
+                for (int j = 0; j < a->columns; j++)
+                {
+                    a->matrix[i][j] /= scale;
+                }
+            }
+
+            for (int x = i + 1; x < a->rows; x++)
+            {
+                if (a->matrix[x][i] != 0)
+                {
+                    float factor = a->matrix[x][i];
+                    for (int y = 0; y < a->columns; y++)
+                    {
+                        a->matrix[x][y] -= factor * a->matrix[i][y];
+                    }
+                }
+            }
+        }
+        printMatrix(a);
+        return a;
+    }
+}
+
+int Rank(MatrixPtr a)
+{
+    MatrixPtr r = Reduce(a);
+    int rank = 0;
+    for (int i = 0; i < r->rows; i++)
+    {
+        int j = 0;
+        while (r->matrix[i][j] == (float)0 && j < r->columns)
+        {
+            j++;
+        }
+        if (j == r->columns)
+            rank += 0;
+        else
+            rank++;
+    }
+    return rank;
 }
 
 void printMatrix(MatrixPtr matrix)
